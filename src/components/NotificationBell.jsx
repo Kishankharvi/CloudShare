@@ -1,8 +1,14 @@
-import { useState,useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Bell } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+
 export default function NotificationBell() {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: "Welcome to CloudShare Pro!" },
+  ]);
   const bellRef = useRef(null);
+  const { resultsnoti } = useApp();
 
   // Close dropdown if clicked outside
   useEffect(() => {
@@ -15,9 +21,15 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const notifications = [
-    { id: 1, message: "Your upload completed" },
-  ];
+  // React to resultsnoti change and add notification
+  useEffect(() => {
+    if (resultsnoti && resultsnoti.fileName) {
+      setNotifications((prev) => [
+        { id: Date.now(), message: `File "${resultsnoti.fileName}" uploaded successfully!` },
+        ...prev.slice(0, 4) // Keep only last 5 notifications
+      ]);
+    }
+  }, [resultsnoti]);
 
   return (
     <div className="relative" ref={bellRef}>
@@ -33,10 +45,15 @@ export default function NotificationBell() {
 
       {showNotifications && (
         <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-lg z-50 animate-fade-in">
-          <div className="p-4 text-sm font-medium text-slate-700 border-b">Notifications</div>
+          <div className="p-4 text-sm font-medium text-slate-700 border-b">
+            Notifications
+          </div>
           <ul className="max-h-60 overflow-y-auto">
             {notifications.map((note) => (
-              <li key={note.id} className="px-4 py-3 hover:bg-slate-50 text-slate-600 text-sm">
+              <li
+                key={note.id}
+                className="px-4 py-3 hover:bg-slate-50 text-slate-600 text-sm"
+              >
                 {note.message}
               </li>
             ))}

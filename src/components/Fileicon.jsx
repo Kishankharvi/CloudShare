@@ -1,5 +1,5 @@
-import React from 'react';
 import { File, Image, Video, Music, FileText, Archive, Code } from 'lucide-react';
+
 const FileIcon = ({ fileName, size = 24 }) => {
   const getFileIcon = (fileName) => {
     if (!fileName) return File;
@@ -35,4 +35,4 @@ const FileIcon = ({ fileName, size = 24 }) => {
   return <IconComponent size={size} className={getIconColor(fileName)} />;
 };
 
-export default FileIcon;    
+export default FileIcon;

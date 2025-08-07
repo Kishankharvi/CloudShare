@@ -1,13 +1,19 @@
-import {  Cloud,  Menu, Home, Star, Award,  BarChart3 } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Cloud, Menu, Home, Star, Award, BarChart3, Info, Mail } from 'lucide-react';
 import NotificationBell from './NotificationBell';
-const Navigation = ({ currentPage, setCurrentPage, isMenuOpen, setIsMenuOpen }) => {
+
+const Navigation = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+
   const navigation = [
-    { name: 'Home', id: 'home', icon: Home },
-    { name: 'Dashboard', id: 'dashboard', icon: BarChart3 },
-    // { name: 'About', id: 'about', icon: Info },
-    { name: 'Features', id: 'features', icon: Star },
-    { name: 'Server', id: 'server', icon: Award },
-    // { name: 'Contact', id: 'contact', icon: Mail },
+    { name: 'Home', path: '/', icon: Home },
+    { name: 'Dashboard', path: '/dashboard', icon: BarChart3 },
+    { name: 'About', path: '/about', icon: Info },
+    { name: 'Features', path: '/features', icon: Star },
+    { name: 'Server', path: '/server', icon: Award },
+    { name: 'Contact', path: '/contact', icon: Mail },
   ];
 
   return (
@@ -15,7 +21,7 @@ const Navigation = ({ currentPage, setCurrentPage, isMenuOpen, setIsMenuOpen }) 
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-xl">
               <Cloud size={32} className="text-white" />
             </div>
@@ -25,34 +31,29 @@ const Navigation = ({ currentPage, setCurrentPage, isMenuOpen, setIsMenuOpen }) 
               </h1>
               <p className="text-xs text-slate-500">Enterprise File Sharing</p>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             {navigation.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setCurrentPage(item.id)}
+              <Link
+                key={item.path}
+                to={item.path}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 font-medium ${
-                  currentPage === item.id
+                  location.pathname === item.path
                     ? 'bg-blue-50 text-blue-600 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 <item.icon size={18} />
                 {item.name}
-              </button>
+              </Link>
             ))}
           </nav>
 
           {/* User Actions */}
           <div className="flex items-center gap-4">
-  <NotificationBell />
-            
-            {/* <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-              <User size={18} />
-              Account
-            </button> */}
+            <NotificationBell />
             
             {/* Mobile menu button */}
             <button
@@ -69,21 +70,19 @@ const Navigation = ({ currentPage, setCurrentPage, isMenuOpen, setIsMenuOpen }) 
           <div className="md:hidden border-t border-slate-200 py-4">
             <nav className="space-y-2">
               {navigation.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setCurrentPage(item.id);
-                    setIsMenuOpen(false);
-                  }}
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsMenuOpen(false)}
                   className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
-                    currentPage === item.id
+                    location.pathname === item.path
                       ? 'bg-blue-50 text-blue-600'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <item.icon size={18} />
                   {item.name}
-                </button>
+                </Link>
               ))}
             </nav>
           </div>
@@ -91,4 +90,6 @@ const Navigation = ({ currentPage, setCurrentPage, isMenuOpen, setIsMenuOpen }) 
       </div>
     </header>
   );
-}; export default Navigation;
+};
+
+export default Navigation;

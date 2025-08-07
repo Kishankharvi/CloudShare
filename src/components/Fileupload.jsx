@@ -96,4 +96,5 @@ const FileUpload = ({ onUploadSuccess, isUploading, uploadProgress }) => {
       </div>
     </div>
   );
-};export default FileUpload;
+}
+export default FileUpload;

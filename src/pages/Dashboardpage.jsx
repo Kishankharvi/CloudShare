@@ -1,19 +1,29 @@
-import React, { useState } from 'react';   
-import { List, Grid, Search, RefreshCw, Cloud } from 'lucide-react';
-import FileUpload from '../components/Fileupload.jsx';
-import FileItem from '../components/Fileitem.jsx';                   
-const DashboardPage = ({ 
-  files, 
-  isUploading, 
-  uploadProgress, 
-  deletingFileId, 
-  handleFileUpload, 
-  handleFileDelete, 
-  fetchFiles,
-  isLoading 
-}) => {
+import { useState, useEffect } from 'react';
+import { List, Grid, Search, RefreshCw, Cloud, File } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import FileUpload from '../components/Fileupload';
+import FileItem from '../components/Fileitem';
+import Toast from '../components/Toast';  
+
+const DashboardPage = () => {
+  const {
+    files,
+    isUploading,
+    uploadProgress,
+    deletingFileId,
+    handleFileUpload,
+    handleFileDelete,
+    fetchFiles,
+    isLoading
+  } = useApp();
+
   const [viewMode, setViewMode] = useState('list');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Fetch files when component mounts
+  useEffect(() => {
+    fetchFiles();
+  }, []);
 
   const filteredFiles = files.filter(file =>
     file.fileName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -94,15 +104,15 @@ const DashboardPage = ({
         </div>
 
         {isLoading ? (
-  <div className="flex flex-col items-center justify-center py-24 text-center space-y-4 animate-fade-in">
-    <div className="relative">
-      <div className="absolute inset-0 animate-ping-slow rounded-full bg-slate-300 opacity-20"></div>
-      <Cloud size={64} className="text-slate-400 animate-bounce-slow" />
-    </div>
-    <h3 className="text-xl font-semibold text-slate-600">Getting things ready...</h3>
-    <p className="text-slate-500 text-sm">Hang tight — your files are loading faster than you think.</p>
-  </div>
-): filteredFiles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center space-y-4 animate-fade-in">
+            <div className="relative">
+              <div className="absolute inset-0 animate-ping-slow rounded-full bg-slate-300 opacity-20"></div>
+              <Cloud size={64} className="text-slate-400 animate-bounce-slow" />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-600">Getting things ready...</h3>
+            <p className="text-slate-500 text-sm">Hang tight — your files are loading faster than you think.</p>
+          </div>
+        ) : filteredFiles.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-lg">
             <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
               <File size={32} className="text-slate-400" />
@@ -133,4 +143,6 @@ const DashboardPage = ({
       </div>
     </div>
   );
-};export default DashboardPage;
+};
+
+export default DashboardPage;

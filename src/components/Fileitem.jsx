@@ -1,5 +1,6 @@
-import React from 'react';
-import FileIcon  from './Fileicon'; 
+import { Download, Copy, Trash2 } from 'lucide-react';
+import FileIcon from './Fileicon';
+
 const FileItem = ({ file, onDelete, isDeleting, viewMode = 'list' }) => {
   
   const formatFileSize = (bytes) => {
@@ -126,4 +127,6 @@ const FileItem = ({ file, onDelete, isDeleting, viewMode = 'list' }) => {
       </div>
     </div>
   );
-};export default FileItem;
+};
+
+export default FileItem;

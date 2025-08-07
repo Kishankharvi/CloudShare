@@ -47,60 +47,60 @@ const generateFileId = () => {
 };
 
 // Create S3 bucket if it doesn't exist
-const createBucketIfNotExists = async () => {
-  try {
-    await s3.headBucket({ Bucket: BUCKET_NAME }).promise();
-    console.log(`Bucket ${BUCKET_NAME} already exists`);
-  } catch (error) {
-    if (error.statusCode === 404) {
-      try {
-        await s3.createBucket({ Bucket: BUCKET_NAME }).promise();
+// const createBucketIfNotExists = async () => {
+//   try {
+//     await s3.headBucket({ Bucket: BUCKET_NAME }).promise();
+//     console.log(`Bucket ${BUCKET_NAME} already exists`);
+//   } catch (error) {
+//     if (error.statusCode === 404) {
+//       try {
+//         await s3.createBucket({ Bucket: BUCKET_NAME }).promise();
         
-        // Set bucket policy for public read access
-        const bucketPolicy = {
-          Version: '2012-10-17',
-          Statement: [
-            {
-              Sid: 'PublicReadGetObject',
-              Effect: 'Allow',
-              Principal: '*',
-              Action: 's3:GetObject',
-              Resource: `arn:aws:s3:::${BUCKET_NAME}/*`
-            }
-          ]
-        };
+//         // Set bucket policy for public read access
+//         const bucketPolicy = {
+//           Version: '2012-10-17',
+//           Statement: [
+//             {
+//               Sid: 'PublicReadGetObject',
+//               Effect: 'Allow',
+//               Principal: '*',
+//               Action: 's3:GetObject',
+//               Resource: `arn:aws:s3:::${BUCKET_NAME}/*`
+//             }
+//           ]
+//         };
         
-        await s3.putBucketPolicy({
-          Bucket: BUCKET_NAME,
-          Policy: JSON.stringify(bucketPolicy)
-        }).promise();
+//         await s3.putBucketPolicy({
+//           Bucket: BUCKET_NAME,
+//           Policy: JSON.stringify(bucketPolicy)
+//         }).promise();
         
-        // Configure CORS
-        const corsConfiguration = {
-          CORSRules: [
-            {
-              AllowedHeaders: ['*'],
-              AllowedMethods: ['GET', 'POST', 'PUT', 'DELETE'],
-              AllowedOrigins: ['*'],
-              ExposeHeaders: []
-            }
-          ]
-        };
+//         // Configure CORS
+//         const corsConfiguration = {
+//           CORSRules: [
+//             {
+//               AllowedHeaders: ['*'],
+//               AllowedMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+//               AllowedOrigins: ['*'],
+//               ExposeHeaders: []
+//             }
+//           ]
+//         };
         
-        await s3.putBucketCors({
-          Bucket: BUCKET_NAME,
-          CORSConfiguration: corsConfiguration
-        }).promise();
+//         await s3.putBucketCors({
+//           Bucket: BUCKET_NAME,
+//           CORSConfiguration: corsConfiguration
+//         }).promise();
         
-        console.log(`Bucket ${BUCKET_NAME} created successfully`);
-      } catch (createError) {
-        console.error('Error creating bucket:', createError);
-      }
-    } else {
-      console.error('Error checking bucket:', error);
-    }
-  }
-};
+//         console.log(`Bucket ${BUCKET_NAME} created successfully`);
+//       } catch (createError) {
+//         console.error('Error creating bucket:', createError);
+//       }
+//     } else {
+//       console.error('Error checking bucket:', error);
+//     }
+//   }
+// };
 
 // Configure multer for file uploads
 const upload = multer({
@@ -228,24 +228,6 @@ cron.schedule('0 * * * *', async () => {
   }
 });
 
-// Initialize bucket on server start
-createBucketIfNotExists();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -309,7 +291,7 @@ app.get('/api/server', async (req, res) => {
   // Dummy server info, replace with AWS EC2 describeInstances if needed
   const serverInfo = {
     instanceId: 'LOCAL 1',
-    region: 'us-east-1',
+    region: 'ap-south-1',
     type: 't2.micro',
     status: 'running',
     uptime: '3 minutes',

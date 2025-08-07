@@ -1,27 +1,29 @@
-import { useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+
+const AppContext = createContext();
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-function Index() {
-  const [currentPage, setCurrentPage] = useState('home');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+export const useApp = () => {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
+  }
+  return context;
+};
+
+export const AppProvider = ({ children }) => {
   const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [deletingFileId, setDeletingFileId] = useState(null);
   const [toast, setToast] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [resultsnoti,setresultnoti]=useState();
+  const [resultsnoti, setResultsnoti] = useState();
 
   const showToast = (message, type) => {
     setToast({ message, type });
   };
-
-  // Fetch files on component mount
-  useEffect(() => {
-    if (currentPage === 'dashboard') {
-      fetchFiles();
-    }
-  }, [currentPage]);
 
   const fetchFiles = async () => {
     try {
@@ -78,17 +80,7 @@ function Index() {
       }
 
       const data = await response.json();
-
-
-
-
-
-
-
-
-console.log(data.result)
-setresultnoti(data.result);
-
+      setResultsnoti(data);
 
       // Add the new file to the list
       const newFile = {
@@ -131,59 +123,24 @@ setresultnoti(data.result);
     }
   };
 
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'home':
-        return <HomePage />;
-      case 'dashboard':
-        return (
-          <DashboardPage
-            files={files}
-            isUploading={isUploading}
-            uploadProgress={uploadProgress}
-            deletingFileId={deletingFileId}
-            handleFileUpload={handleFileUpload}
-            handleFileDelete={handleFileDelete}
-            fetchFiles={fetchFiles}
-            isLoading={isLoading}
-          />
-        );
-      case 'about':
-        return <AboutPage />;
-      case 'features':
-        return <FeaturesPage />;
-      case 'server':
-        return <ServerPage />;
-      case 'contact':
-        return <ContactPage />;
-      default:
-        return <HomePage />;
-    }
+  const value = {
+    files,
+    isUploading,
+    uploadProgress,
+    deletingFileId,
+    toast,
+    setToast,
+    isLoading,
+    resultsnoti,
+    showToast,
+    fetchFiles,
+    handleFileUpload,
+    handleFileDelete,
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex flex-col">
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
-      <Navigation 
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        isMenuOpen={isMenuOpen}
-        setIsMenuOpen={setIsMenuOpen}
-        resultsnoti={resultsnoti}
-      />
-
-      <main className="flex-1 container mx-auto px-4 py-8">
-        {renderPage()}
-      </main>
-
-      <Footer />
-    </div>
+    <AppContext.Provider value={value}>
+      {children}
+    </AppContext.Provider>
   );
-} export default Index;
+};

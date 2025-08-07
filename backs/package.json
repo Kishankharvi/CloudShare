@@ -14,7 +14,8 @@
     "express": "^5.1.0",
     "multer": "^2.0.1",
     "node-cron": "^4.2.1",
-    "uuid": "^11.1.0"
+   "axios": "^1.11.0"
+
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
