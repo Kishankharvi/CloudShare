@@ -15,7 +15,7 @@ const AboutPage = () => {
         <div>
           <h2 className="text-3xl font-bold text-slate-900 mb-6">How We Built It</h2>
           <p className="text-slate-600 leading-relaxed mb-4">
-            This file sharing platform was developed by <strong>Kishan</strong> and <strong>Kumataswamy</strong> as a collaborative project focused on applying real-world cloud infrastructure practices.
+            This file sharing platform was developed by <strong>Kishan</strong> and <strong>Kumaraswamy</strong> as a collaborative project focused on applying real-world cloud infrastructure practices.
             The backend is built with Node.js and hosted on an AWS EC2 instance. A Load Balancer is configured to handle incoming traffic and direct it to the EC2 backend through a Target Group.
           </p>
           <p className="text-slate-600 leading-relaxed">
