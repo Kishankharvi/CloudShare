@@ -1,6 +1,7 @@
 
 const express = require('express');
 const multer = require('multer');
+const axios=require('axios');
 const AWS = require('aws-sdk');
 const cors = require('cors');
 const path = require('path');
@@ -11,15 +12,21 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+
+const corsOptions = {
+  origin: 'http://localhost:3000', 
+  optionsSuccessStatus: 200 // For legacy browser support
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // AWS Configuration
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION || 'ap-south-1'
+  region: process.env.AWS_REGION || 'us-east-1'
 });
 
 const s3 = new AWS.S3();
@@ -46,62 +53,6 @@ const generateFileId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
-// Create S3 bucket if it doesn't exist
-// const createBucketIfNotExists = async () => {
-//   try {
-//     await s3.headBucket({ Bucket: BUCKET_NAME }).promise();
-//     console.log(`Bucket ${BUCKET_NAME} already exists`);
-//   } catch (error) {
-//     if (error.statusCode === 404) {
-//       try {
-//         await s3.createBucket({ Bucket: BUCKET_NAME }).promise();
-        
-//         // Set bucket policy for public read access
-//         const bucketPolicy = {
-//           Version: '2012-10-17',
-//           Statement: [
-//             {
-//               Sid: 'PublicReadGetObject',
-//               Effect: 'Allow',
-//               Principal: '*',
-//               Action: 's3:GetObject',
-//               Resource: `arn:aws:s3:::${BUCKET_NAME}/*`
-//             }
-//           ]
-//         };
-        
-//         await s3.putBucketPolicy({
-//           Bucket: BUCKET_NAME,
-//           Policy: JSON.stringify(bucketPolicy)
-//         }).promise();
-        
-//         // Configure CORS
-//         const corsConfiguration = {
-//           CORSRules: [
-//             {
-//               AllowedHeaders: ['*'],
-//               AllowedMethods: ['GET', 'POST', 'PUT', 'DELETE'],
-//               AllowedOrigins: ['*'],
-//               ExposeHeaders: []
-//             }
-//           ]
-//         };
-        
-//         await s3.putBucketCors({
-//           Bucket: BUCKET_NAME,
-//           CORSConfiguration: corsConfiguration
-//         }).promise();
-        
-//         console.log(`Bucket ${BUCKET_NAME} created successfully`);
-//       } catch (createError) {
-//         console.error('Error creating bucket:', createError);
-//       }
-//     } else {
-//       console.error('Error checking bucket:', error);
-//     }
-//   }
-// };
-
 // Configure multer for file uploads
 const upload = multer({
   limits: {
@@ -114,6 +65,68 @@ const upload = multer({
 });
 
 // Routes
+app.get('/', (req, res) => {
+  res.status(200).send('OK');
+});
+
+
+app.get('/api/server', async (req, res) => {
+  const metadataBaseUrl = 'http://169.254.169.254/latest/meta-data';
+  const tokenUrl = 'http://169.254.169.254/latest/api/token';
+
+  try {
+    // Step 1: Get the IMDSv2 token
+    const tokenResponse = await axios.put(tokenUrl, null, {
+      headers: {
+        'X-aws-ec2-metadata-token-ttl-seconds': '21600',
+      },
+    });
+    const token = tokenResponse.data;
+
+    // Step 2: Fetch metadata using token
+    const [instanceId, instanceType, availabilityZone, publicIp, privateIp] = await Promise.all([
+      axios.get(`${metadataBaseUrl}/instance-id`, {
+        headers: { 'X-aws-ec2-metadata-token': token },
+      }),
+      axios.get(`${metadataBaseUrl}/instance-type`, {
+        headers: { 'X-aws-ec2-metadata-token': token },
+      }),
+      axios.get(`${metadataBaseUrl}/placement/availability-zone`, {
+        headers: { 'X-aws-ec2-metadata-token': token },
+      }),
+      axios.get(`${metadataBaseUrl}/public-ipv4`, {
+        headers: { 'X-aws-ec2-metadata-token': token },
+      }),
+      axios.get(`${metadataBaseUrl}/local-ipv4`, {
+        headers: { 'X-aws-ec2-metadata-token': token },
+      }),
+    ]);
+
+    const region = availabilityZone.data.slice(0, -1); // e.g., us-east-1a → us-east-1
+
+    res.json({
+      instanceId: instanceId.data,
+      instanceType: instanceType.data,
+      region: region,
+      publicIp: publicIp.data,
+      privateIp: privateIp.data,
+      status: 'running',
+      message: 'Fetched from EC2 instance metadata using IMDSv2',
+    });
+  } catch (error) {
+    console.error('Error fetching EC2 metadata:', error.message);
+
+    res.json({
+      instanceId: 'LOCAL',
+      instanceType: 'development',
+      region: 'N/A',
+      publicIp: 'N/A',
+      privateIp: 'N/A',
+      status: 'local mode',
+      message: 'Not running inside an EC2 instance or IMDSv2 token fetch failed',
+    });
+  }
+});
 app.post('/api/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -193,6 +206,7 @@ app.get('/api/file/:fileId', (req, res) => {
   });
 });
 
+
 // Cleanup expired files (runs every hour)
 cron.schedule('0 * * * *', async () => {
   console.log('Running cleanup job...');
@@ -228,8 +242,8 @@ cron.schedule('0 * * * *', async () => {
   }
 });
 
-
-
+// Initialize bucket on server start
+//createBucketIfNotExists();
 
 app.get('/api/files', (req, res) => {
   try {
@@ -283,31 +297,6 @@ app.delete('/api/files/:fileId', async (req, res) => {
     return res.status(500).json({ error: 'Failed to delete file' });
   }
 });
-
-
-
-
-app.get('/api/server', async (req, res) => {
-  // Dummy server info, replace with AWS EC2 describeInstances if needed
-  const serverInfo = {
-    instanceId: 'LOCAL 1',
-    region: 'ap-south-1',
-    type: 't2.micro',
-    status: 'running',
-    uptime: '3 minutes',
-  };
-
-  res.json(serverInfo);
-});
-
-
-
-
-
-
-
-
-
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });

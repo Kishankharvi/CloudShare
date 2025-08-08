@@ -1,4 +1,0 @@
-create iam user
-with cli and s3 policy full access
-and install node in ec2 with cosotme tcp access form any where 
-save those in the .env
